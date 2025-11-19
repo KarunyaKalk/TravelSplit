@@ -155,6 +155,8 @@ export const insertExpenseSchema = createInsertSchema(expenses).pick({
   category: z.enum(["food", "transport", "accommodation", "entertainment", "other"]).default("other"),
 });
 
+export const updateExpenseSchema = insertExpenseSchema;
+
 // TypeScript types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;

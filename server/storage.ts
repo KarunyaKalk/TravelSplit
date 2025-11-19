@@ -44,6 +44,15 @@ export interface IStorage {
     splitWith: string[],
     category?: string
   ): Promise<Expense>;
+  updateExpense(
+    expenseId: string,
+    title: string,
+    amount: string,
+    paidBy: string,
+    splitWith: string[],
+    category: string
+  ): Promise<Expense>;
+  deleteExpense(expenseId: string): Promise<void>;
   getGroupExpenses(groupId: string): Promise<any[]>;
 }
 
@@ -340,6 +349,42 @@ export class DatabaseStorage implements IStorage {
     );
 
     return result;
+  }
+
+  async updateExpense(
+    expenseId: string,
+    title: string,
+    amount: string,
+    paidBy: string,
+    splitWith: string[],
+    category: string
+  ): Promise<Expense> {
+    // Delete existing splits
+    await db.delete(expenseSplits).where(eq(expenseSplits.expenseId, expenseId));
+
+    // Update expense
+    const [expense] = await db
+      .update(expenses)
+      .set({ title, amount, paidBy, category })
+      .where(eq(expenses.id, expenseId))
+      .returning();
+
+    // Add new splits
+    const splitAmount = (parseFloat(amount) / splitWith.length).toFixed(2);
+    const splits = splitWith.map((userId) => ({
+      expenseId: expense.id,
+      userId,
+      amount: splitAmount,
+    }));
+
+    await db.insert(expenseSplits).values(splits);
+
+    return expense;
+  }
+
+  async deleteExpense(expenseId: string): Promise<void> {
+    // Cascade delete will handle expense_splits
+    await db.delete(expenses).where(eq(expenses.id, expenseId));
   }
 }
 

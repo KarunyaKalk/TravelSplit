@@ -180,6 +180,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/groups/:groupId/expenses/:expenseId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { groupId, expenseId } = req.params;
+
+      const isMember = await storage.isGroupMember(groupId, userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const validation = insertExpenseSchema.safeParse(req.body);
+
+      if (!validation.success) {
+        const errorMessage = fromZodError(validation.error).toString();
+        return res.status(400).json({ message: errorMessage });
+      }
+
+      const { title, amount, paidBy, splitWith, category = "other" } = validation.data;
+
+      const expense = await storage.updateExpense(expenseId, title, amount, paidBy, splitWith, category);
+      res.json(expense);
+    } catch (error) {
+      console.error("Error updating expense:", error);
+      res.status(500).json({ message: "Failed to update expense" });
+    }
+  });
+
+  app.delete("/api/groups/:groupId/expenses/:expenseId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { groupId, expenseId } = req.params;
+
+      const isMember = await storage.isGroupMember(groupId, userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteExpense(expenseId);
+      res.json({ message: "Expense deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+      res.status(500).json({ message: "Failed to delete expense" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

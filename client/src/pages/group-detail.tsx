@@ -19,10 +19,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertExpenseSchema, type User as DbUser, type Expense, type ExpenseSplit } from "@shared/schema";
 
 type User = DbUser;
-import { ArrowLeft, Plus, Wallet, TrendingUp, TrendingDown, UserPlus, Receipt } from "lucide-react";
+import { ArrowLeft, Plus, Wallet, TrendingUp, TrendingDown, UserPlus, Receipt, Pencil, Trash2 } from "lucide-react";
 import { Link, useParams } from "wouter";
 import type { z } from "zod";
 import { EXPENSE_CATEGORIES, getCategoryDetails, type ExpenseCategory } from "@/lib/categories";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 type ExpenseWithDetails = Expense & {
   paidByUser: User;
@@ -54,6 +55,9 @@ export default function GroupDetail() {
   const [addExpenseOpen, setAddExpenseOpen] = useState(false);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [editExpenseOpen, setEditExpenseOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<ExpenseWithDetails | null>(null);
+  const [deleteExpenseId, setDeleteExpenseId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
