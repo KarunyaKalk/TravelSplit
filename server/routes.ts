@@ -170,9 +170,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: errorMessage });
       }
 
-      const { title, amount, paidBy, splitWith } = validation.data;
+      const { title, amount, paidBy, splitWith, category = "other" } = validation.data;
 
-      const expense = await storage.addExpense(id, title, amount, paidBy, splitWith);
+      const expense = await storage.addExpense(id, title, amount, paidBy, splitWith, category);
       res.json(expense);
     } catch (error) {
       console.error("Error adding expense:", error);

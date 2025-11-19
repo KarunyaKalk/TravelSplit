@@ -22,6 +22,7 @@ type User = DbUser;
 import { ArrowLeft, Plus, Wallet, TrendingUp, TrendingDown, UserPlus, Receipt } from "lucide-react";
 import { Link, useParams } from "wouter";
 import type { z } from "zod";
+import { EXPENSE_CATEGORIES, getCategoryDetails, type ExpenseCategory } from "@/lib/categories";
 
 type ExpenseWithDetails = Expense & {
   paidByUser: User;
@@ -85,6 +86,7 @@ export default function GroupDetail() {
       amount: "",
       paidBy: user?.id || "",
       splitWith: [],
+      category: "other",
     },
   });
 
@@ -395,6 +397,37 @@ export default function GroupDetail() {
 
                       <FormField
                         control={expenseForm.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-category">
+                                  <SelectValue placeholder="Select category" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {Object.entries(EXPENSE_CATEGORIES).map(([key, cat]) => {
+                                  const Icon = cat.icon;
+                                  return (
+                                    <SelectItem key={key} value={key} data-testid={`option-category-${key}`}>
+                                      <div className="flex items-center gap-2">
+                                        <Icon className={`w-4 h-4 ${cat.color}`} />
+                                        {cat.label}
+                                      </div>
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={expenseForm.control}
                         name="paidBy"
                         render={({ field }) => (
                           <FormItem>
@@ -467,14 +500,17 @@ export default function GroupDetail() {
 
             {group.expenses.length > 0 ? (
               <div className="space-y-3">
-                {group.expenses.map((expense) => (
-                  <Card key={expense.id} className="hover-elevate" data-testid={`card-expense-${expense.id}`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-3 flex-1">
-                          <div className="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Receipt className="w-5 h-5 text-primary" />
-                          </div>
+                {group.expenses.map((expense) => {
+                  const categoryDetails = getCategoryDetails(expense.category || "other");
+                  const CategoryIcon = categoryDetails.icon;
+                  return (
+                    <Card key={expense.id} className="hover-elevate" data-testid={`card-expense-${expense.id}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3 flex-1">
+                            <div className={`${categoryDetails.bgColor} w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0`}>
+                              <CategoryIcon className={`w-5 h-5 ${categoryDetails.color}`} />
+                            </div>
                           <div className="flex-1">
                             <h4 className="font-semibold mb-1" data-testid={`text-expense-title-${expense.id}`}>
                               {expense.title}
@@ -504,6 +540,68 @@ export default function GroupDetail() {
                             ₹{parseFloat(expense.amount).toFixed(2)}
                           </p>
                         </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Wallet className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">No expenses yet</h3>
+                  <p className="text-muted-foreground mb-4">Start tracking by adding your first expense</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Settlements</h3>
+            {group.settlements.length > 0 ? (
+              <div className="space-y-3">
+                {group.settlements.map((settlement, idx) => (
+                  <Card key={idx} data-testid={`card-settlement-${idx}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={settlement.from.profileImageUrl || undefined} />
+                          <AvatarFallback className="bg-destructive/20 text-destructive text-xs">
+                            {getInitials(settlement.from.firstName, settlement.from.lastName, settlement.from.email)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium">
+                          {settlement.from.firstName && settlement.from.lastName
+                            ? `${settlement.from.firstName} ${settlement.from.lastName}`
+                            : settlement.from.email}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="h-px bg-border flex-1" />
+                        <span className="text-xs text-muted-foreground">owes</span>
+                        <div className="h-px bg-border flex-1" />
+                      </div>
+                      <div className="flex items-center gap-3 mb-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={settlement.to.profileImageUrl || undefined} />
+                          <AvatarFallback className="bg-green-100 dark:bg-green-900/30 text-green-700 text-xs">
+                            {getInitials(settlement.to.firstName, settlement.to.lastName, settlement.to.email)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium">
+                          {settlement.to.firstName && settlement.to.lastName
+                            ? `${settlement.to.firstName} ${settlement.to.lastName}`
+                            : settlement.to.email}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-accent/20 rounded-lg">
+                        <span className="text-sm text-muted-foreground">Amount</span>
+                        <span className="text-xl font-bold text-primary" data-testid={`text-settlement-amount-${idx}`}>
+                          ₹{settlement.amount}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>

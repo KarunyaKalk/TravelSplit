@@ -41,7 +41,8 @@ export interface IStorage {
     title: string,
     amount: string,
     paidBy: string,
-    splitWith: string[]
+    splitWith: string[],
+    category?: string
   ): Promise<Expense>;
   getGroupExpenses(groupId: string): Promise<any[]>;
 }
@@ -283,11 +284,12 @@ export class DatabaseStorage implements IStorage {
     title: string,
     amount: string,
     paidBy: string,
-    splitWith: string[]
+    splitWith: string[],
+    category: string = "other"
   ): Promise<Expense> {
     const [expense] = await db
       .insert(expenses)
-      .values({ groupId, title, amount, paidBy })
+      .values({ groupId, title, amount, paidBy, category })
       .returning();
 
     const splitAmount = (parseFloat(amount) / splitWith.length).toFixed(2);

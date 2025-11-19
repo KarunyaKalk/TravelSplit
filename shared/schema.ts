@@ -56,6 +56,7 @@ export const expenses = pgTable("expenses", {
   title: text("title").notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   paidBy: varchar("paid_by").notNull().references(() => users.id),
+  category: varchar("category", { length: 50 }).notNull().default("other"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -148,8 +149,10 @@ export const insertExpenseSchema = createInsertSchema(expenses).pick({
   title: true,
   amount: true,
   paidBy: true,
+  category: true,
 }).extend({
   splitWith: z.array(z.string()).min(1, "Must split with at least one person"),
+  category: z.enum(["food", "transport", "accommodation", "entertainment", "other"]).default("other"),
 });
 
 // TypeScript types
