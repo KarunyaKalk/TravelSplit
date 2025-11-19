@@ -84,12 +84,11 @@ export default function GroupDetail() {
   });
 
   const expenseForm = useForm<z.infer<typeof insertExpenseSchema>>({
-    resolver: zodResolver(insertExpenseSchema),
+    resolver: zodResolver(insertExpenseSchema.omit({ splitWith: true })),
     defaultValues: {
       title: "",
       amount: "",
       paidBy: user?.id || "",
-      splitWith: [],
       category: "other",
     },
   });

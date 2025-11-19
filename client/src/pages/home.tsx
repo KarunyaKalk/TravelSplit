@@ -139,7 +139,11 @@ export default function Home() {
               variant="outline"
               size="icon"
               className="rounded-full"
-              onClick={() => window.location.href = "/api/logout"}
+              onClick={async () => {
+                await apiRequest("POST", "/api/auth/logout", {});
+                queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+                window.location.href = "/";
+              }}
               data-testid="button-logout"
             >
               <LogOut className="w-4 h-4" />
