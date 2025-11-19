@@ -17,6 +17,7 @@ import { insertGroupSchema, type Group, type User as DbUser } from "@shared/sche
 
 type User = DbUser;
 import { Plus, Users, LogOut, UserPlus, Palmtree } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Link } from "wouter";
 import type { z } from "zod";
 
@@ -122,6 +123,7 @@ export default function Home() {
             <h1 className="text-2xl font-display font-bold text-primary">Money Splitter</h1>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Link href="/contacts">
               <Button variant="outline" size="icon" className="rounded-full" data-testid="button-contacts">
                 <UserPlus className="w-4 h-4" />

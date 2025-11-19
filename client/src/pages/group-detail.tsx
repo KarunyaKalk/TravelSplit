@@ -335,6 +335,14 @@ export default function GroupDetail() {
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold">Expenses</h3>
+              <Link href={`/groups/${id}/balances`}>
+                <Button variant="outline" size="sm" data-testid="button-view-balances">
+                  View All Balances
+                </Button>
+              </Link>
+            </div>
+            <div className="flex items-center justify-between mb-4">
+              <div></div>
               <Dialog open={addExpenseOpen} onOpenChange={setAddExpenseOpen}>
                 <DialogTrigger asChild>
                   <Button className="rounded-full" data-testid="button-add-expense">
